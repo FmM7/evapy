@@ -83,15 +83,39 @@ def eva_move(loc):
             dist_temp = min(dist_temp, dist(i, j))
         move_result.append([i, dist_temp])
     move_chance = [[i[0], math.exp(ks * (loc_dist - i[1]))] for i in move_result]
+
     return move_chance
 
-for i in still:
-    print(eva_move(eva_dict[i].loc))
-
-while False:
+c = 0
+while True:
     #Eva毎に行動
+    c += 1
+    print(cell)
+    print(still)
+    escaped = []
     for i in still:
-        here_loc = eva_dict[i][1]
+        here_loc = eva_dict[i].loc
+        move_chance = eva_move(here_loc)
+        result = rd.choices([i[0] for i in move_chance], [i[1] for i in move_chance])[0]
+        result_cell = cell[result[1], result[0]]
+        print(i,result,result_cell)
+        if result_cell == 0:
+            eva_dict[i].loc = result
+            cell = np.where(cell == i, 0, cell)
+            cell[result[1], result[0]] = i
+        elif result_cell == -1:
+            cell = np.where(cell == i, 0, cell)
+            escaped.append(i)
+    for i in escaped:
+        still.remove(i)
+    if not still:
+        print(c)
+        break
+
+    if c >= 300:
+        print("osoi")
+        print(cell)
+        exit()
 
 
 input()
