@@ -1,0 +1,10 @@
+* {
+    font-size: 16px;
+}
+
+#cell_data {
+    width: 90vw;
+    height: 250px;
+    margin-left: 5vw;
+    margin-right: 5vw;
+}
