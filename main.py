@@ -90,7 +90,7 @@ c = 0
 while True:
     #Eva毎に行動
     c += 1
-    print(list(cell))
+    print(list([list(i) for i in cell]))
     #print(still)
     escaped = []
     for i in still:
