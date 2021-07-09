@@ -1,10 +1,36 @@
 * {
     font-size: 16px;
+    font-family: "游ゴシック体", YuGothic, "游ゴシック", "Yu Gothic", "メイリオ", "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+    font-weight: 500;
 }
 
+input {
+    font-size:1.15em;
+}
+
+
 #cell_data {
-    width: 90vw;
+    width: 95vw;
     height: 250px;
-    margin-left: 5vw;
-    margin-right: 5vw;
+    margin-left: 1.5vw;
+    margin-right: 1.5vw;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    margin: 25px;
+    text-align: center;
+}
+
+td {
+    border: solid 1px;
+    width:2.5em;
+    height:2.5em;
+    font-size:1.25em;
+}
+
+#turndiv {
+    margin: 15px 0 -15px 15px;
+    font-size: 2em;
 }
