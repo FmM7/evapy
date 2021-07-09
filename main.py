@@ -14,7 +14,7 @@ class Eva:
 ks = 3.0
 wid = 11
 hei = 8
-people_num = 7
+people_num = 20
 
 #range(1, people_num + 1)と避難者が全単射
 eva_dict = {i: Eva(i) for i in range(1, people_num + 1)}
@@ -23,8 +23,8 @@ still = list(range(1, people_num + 1))
 
 def two_dim_vec(num):
     if isinstance(num, int) or isinstance(num, np.int64):
-        return [num % wid, num // wid]
-    elif isinstance(num, list):
+        return np.array([num % wid, num // wid])
+    elif isinstance(num, np.ndarray):
         return num[0] + num[1] * wid
 
 #縦hei,横widの零行列
@@ -33,25 +33,24 @@ cell = np.zeros((hei, wid))
 #出口の配置
 np.put(cell, [4,5,6], -1)
 exits = np.where(cell.reshape(-1,) != 0)
-print(exits)
-print(eva_dict)
-print(still)
+#print(exits)
+#print(eva_dict)
+#print(still)
 
 #空きセルにランダムに避難者を配置
 eva_loc = np.random.choice(np.array(np.where(cell.reshape(-1,) == 0))
           .reshape(-1,), people_num, replace = False)
 np.put(cell, eva_loc, still)
-cell = [list(i) for i in cell]
-print(cell)
+#print(cell)
 for i in range(1, people_num + 1):
     eva_dict[i].loc = two_dim_vec(eva_loc[i - 1])
 
-print(eva_dict)
+#print(eva_dict)
 
 #2点間距離
 def dist(loc1, loc2):
-    loc1 = loc1 if isinstance(loc1, list) else two_dim_vec(loc1)
-    loc2 = loc2 if isinstance(loc2, list) else two_dim_vec(loc2)
+    loc1 = loc1 if isinstance(loc1, np.ndarray) else two_dim_vec(loc1)
+    loc2 = loc2 if isinstance(loc2, np.ndarray) else two_dim_vec(loc2)
     return math.sqrt((loc1[0] - loc2[0]) ** 2 + (loc1[1] - loc2[1]) ** 2)
 
 def eva_move(loc):
@@ -68,13 +67,13 @@ def eva_move(loc):
     #移動先の候補
     loc_opt = []
     if loc[0] != 0:
-        loc_opt.append([loc[0] - 1, loc[1]])
+        loc_opt.append(loc - [1, 0])
     if loc[0] != wid - 1:
-        loc_opt.append([loc[0] + 1, loc[1]])
+        loc_opt.append(loc + [1, 0])
     if loc[1] != 0:
-        loc_opt.append([loc[0], loc[1] - 1])
+        loc_opt.append(loc - [0, 1])
     if loc[1] != hei - 1:
-        loc_opt.append([loc[0], loc[1] + 1])
+        loc_opt.append(loc + [0, 1])
 
     move_result = []
     for i in loc_opt:
@@ -90,22 +89,25 @@ c = 0
 while True:
     #Eva毎に行動
     c += 1
-    print(list([list(i) for i in cell]))
+    print([list(i) for i in cell])
     #print(still)
     escaped = []
+    moved = []
     for i in still:
         here_loc = eva_dict[i].loc
         move_chance = eva_move(here_loc)
         result = rd.choices([i[0] for i in move_chance], [i[1] for i in move_chance])[0]
-        result_cell = cell[result[1]][result[0]]
+        result_cell = cell[result[1], result[0]]
         #print(i,result,result_cell)
         if result_cell == 0:
+            moved.append(eva_dict[i].loc)
             eva_dict[i].loc = result
-            cell = np.where(cell == i, 0, cell)
             cell[result[1], result[0]] = i
         elif result_cell == -1:
-            cell = np.where(cell == i, 0, cell)
+            moved.append(eva_dict[i].loc)
             escaped.append(i)
+    for i in moved:
+        cell[i[1], i[0]] = 0
     for i in escaped:
         still.remove(i)
     if not still:
@@ -114,5 +116,5 @@ while True:
 
     if c >= 300:
         print("osoi")
-        print(cell)
+        print([list(i) for i in cell])
         exit()
