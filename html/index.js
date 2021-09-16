@@ -6,14 +6,15 @@ $(function(){
                 var cenu = $(this).text()
                 if (cenu == "0"){
                     $(this).css("color", "white")
-                    $(this).css("border-color", "black")                    
+                    $(this).css("border-color", "black")
+                    $(this).css("background-color", "white")
                 } else if(cenu=="-1"){
                     $(this).css("background-color","black")
                 }
             })
         })
     }
-    
+
     function renumcell(celturn){
         $("#aiui").html("");
         $("#aiui").append("<tr></tr>".repeat(hei))
@@ -21,14 +22,14 @@ $(function(){
             $(val).append("<td></td>".repeat(wid))
             $(val.children).each(function(ind2,val2){
                 $(this).text(res[celturn-1][ind][ind2])
-                $(this).css("color","black")
-                $(this).css("background-color","white")
+                $(this).css("color","white")
+                $(this).css("background-color","gray")
             })
         })
         $("#turndiv").text("現在ターン: " + celturn.toString())
         numcell()
     }
-    
+
     $("#run_button").on("click", function(){
         //console.log(1);
         var cell_input = $("#cell_data").val().replace(/(\r\n|\n|\r)/, "").split("]]");
@@ -60,7 +61,7 @@ $(function(){
         hei = res[0].length
         renumcell(1)
     });
-    
+
     $("#pre_button").on("click", function(){
         if(turn>1){
             turn -= 1

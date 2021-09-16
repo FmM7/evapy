@@ -5,19 +5,20 @@ import numpy as np
 
 #避難者クラス(Evacuees)
 class Eva:
-    def __init__(self, num, loc = None):
+    def __init__(self, num, loc = None, injured=True):
         self.num = num
         self.loc = loc if loc else -1
+        self.injured = injured
     def __repr__(self):
         return str([self.num, self.loc])
 
-ks = 3.0
-wid = 11
-hei = 8
-people_num = 20
+ks = 2.0
+wid = 100
+hei = 100
+people_num = 500
 
 #range(1, people_num + 1)と避難者が全単射
-eva_dict = {i: Eva(i) for i in range(1, people_num + 1)}
+eva_dict = {i: Eva(i,injured=if rd.random() < 0.9) for i in range(1, people_num + 1)}
 #FF上に残る避難者のリスト(避難完了時に削除)
 still = list(range(1, people_num + 1))
 
@@ -31,7 +32,7 @@ def two_dim_vec(num):
 cell = np.zeros((hei, wid))
 
 #出口の配置
-np.put(cell, [4,5,6], -1)
+np.put(cell, [wid//2], -1)
 exits = np.where(cell.reshape(-1,) != 0)
 #print(exits)
 #print(eva_dict)
@@ -86,14 +87,19 @@ def eva_move(loc):
     return move_chance
 
 c = 0
+res_list = []
+injured_list = []
 while True:
     #Eva毎に行動
     c += 1
-    print([list(i) for i in cell])
+    res_list.append([list(i) for i in cell])
     #print(still)
     escaped = []
     moved = []
     for i in still:
+        if eva_dict[i].injured:
+            if rd.random < 0.5:
+                continue
         here_loc = eva_dict[i].loc
         move_chance = eva_move(here_loc)
         result = rd.choices([i[0] for i in move_chance], [i[1] for i in move_chance])[0]
@@ -111,10 +117,18 @@ while True:
     for i in escaped:
         still.remove(i)
     if not still:
+        #for i in res_list:
+        #    print(i)
         print(c)
         break
 
-    if c >= 300:
+    if not 300:
         print("osoi")
         print([list(i) for i in cell])
         exit()
+
+path = r"C:\Users\halsa\Downloads\evapy-main\a.txt"
+with open(path,mode="w") as f:
+    f.writelines(map(lambda x: str(x)+"\n",res_list))
+
+input("owaru")
