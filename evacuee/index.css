@@ -1,0 +1,12 @@
+#eva-table > table td {
+    border: solid 1px black;
+    width: 1em;
+    height: 1em;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#eva-table > table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
