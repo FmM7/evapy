@@ -24,22 +24,43 @@ class Cell {
 const [wid, hei] = [49, 49];
 // ksが小さいと避難者が出口方向に向かいやすくなる
 const ks = 3.0;
-const peopleNumber = 81;
+const peopleNumber = 144;
 const injuredPossibility = 0.05;
-
 const wholeCell = {}
+const stillEvacuation = []
 for (let i=1; i <= wid * hei; i++) {
     wholeCell[i] = new Cell();
 }
+wholeCell[Math.ceil(wid / 2)].state = "exit";
+for (let i=1; i <= peopleNumber; i++) {
+    stillEvacuation.push(i);
+}
+
+const HTMLUpdateCell = function() {
+    const HTMLCellTable = document.createElement("table");
+    HTMLCellTable.setAttribute("id", "cell-table");
+    const HTMLCellTr = document.createElement("tr");
+    for (let i=1; i<=wid; i++) {
+        HTMLCellTr.appendChild(document.createElement("td"));
+    }
+    for (let i=1; i<=hei; i++) {
+        HTMLCellTable.appendChild(HTMLCellTr.cloneNode(true));
+    }
+    document.getElementById("eva-table")
+        .replaceChild(HTMLCellTable, document.getElementById("cell-table"));
+}
 
 const evaDictionary = {}
-for (let i=1; i <= people_num; i++) {
+for (let i=1; i <= peopleNumber; i++) {
     const isInjured = Math.random() < injuredPossibility;
     evaDictionary[i] =
         isInjured ? new Injured(i, 0) : new Evacuee(i, 0);
-    const evacueePosition =
-        Math.floor(Math.random() * (wid * hei) + 1);
-    evaDictionary[i].position =
-        [evacueePosition % wid, Math.ceil(evacueePosition / wid)];
+    let evacueePosition = 0;
+    do {
+        evacueePosition = Math.floor(Math.random() * (wid * hei) + 1);
+        evaDictionary[i].position =
+            [evacueePosition % wid, Math.ceil(evacueePosition / wid)];
+    } while (wholeCell[evacueePosition].state !== "empty");
     wholeCell[evacueePosition].state = "evacuee";
 }
+
