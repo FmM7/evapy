@@ -246,6 +246,7 @@ for (let i=1; i <= peopleNumber; i++) {
                     param: "exited",
                     moveFrom: this.position,
                     moveTo: moveResult,
+                    moveTurn: turn,
                 };
             default:
                 return {
@@ -261,8 +262,9 @@ for (let i=1; i <= peopleNumber; i++) {
  * turn(1turn毎に各Evacueeが1回行動する)毎にwholeCellを保存する
  * @type {{[turn: number]: {[x: PositionNumber]: CellT}}}
  */
- const wholeCellByTurn = {};
- let turn = 0;
+const wholeCellByTurn = {};
+let turn = 0;
+const exitLog = [];
 //eva-table読み込み後、HTMLUpdateCell()を呼び出す
 window.onload = () => {
     HTMLUpdateCell();
@@ -272,6 +274,9 @@ window.onload = () => {
         const movedAnyway = [];
         for (let i of stillEvacuation) {
             const moveReturn = evaDictionary[i].move();
+            if ("exited" === moveReturn.param) {
+                exitLog.push(moveReturn);
+            }
             if (["moved", "exited"].includes(moveReturn.param)) {
                 movedAnyway.push(moveReturn.moveFrom);
                 evaDictionary[i].position = moveReturn.moveTo;
