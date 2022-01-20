@@ -23,126 +23,6 @@ class Evacuee {
         /** @type {EvacueeType} */
         this.evacueeType = "evacuee";
     }
-}
-
-/**
- * 負傷している(一定確率で動けない)避難者のクラス
- * @type {EvacueeT} 
- * @extends {Evacuee} 
- */
-class Injured extends Evacuee {
-    constructor(...args) {
-        //superはthisを触る前
-        super(...args);
-        /** @type {EvacueeType} */
-        this.evacueeType = "injured";
-    }
-}
-
-/** @typedef {Object} CellT - wholeCellを構成するセル一つずつ */
-/** @typedef {string} CellState - Cellの状態を表す */
-/**
- * 構成セルのクラス
- * @type {CellT}
- */
-class Cell {
-    /** @param {CellState} state - Cellの状態を表す */
-    constructor(state = "empty") {
-        /** @type {CellState} */
-        this.state = state;
-    }
-}
-
-//wholeCellの大きさ (横幅: wid, 縦: hei)
-const [wid, hei] = [49, 49];
-// ksが小さいと避難者が出口方向に向かいやすくなる
-const ks = 3.0;
-//避難者の数
-const peopleNumber = 144;
-//EvacueeがInjuredである確率
-const injuredPossibility = 0.05;
-//Injuredが移動できる確率
-const injuredMovePossibility = 0.5;
-/** @type {PositionNumber} */
-const exitPosition = Math.ceil(wid / 2);
-
-/** @type {{[x: PositionNumber]: CellT}} */
-const wholeCell = {};
-for (let i=1; i <= wid * hei; i++) {
-    wholeCell[i] = new Cell();
-}
-wholeCell[exitPosition].state = "exit";
-
-/** eva-tableをwholeCellの内容に更新する */
-const HTMLUpdateCell = function(tableData = wholeCell) {
-    // wholeCellを表すtable要素 
-    const HTMLCellTable = document.createElement("table");
-    HTMLCellTable.setAttribute("id", "cell-table");
-    for (let i=1; i<=hei; i++) {
-        // tableの列を表すtr要素、hei個
-        const HTMLCellTr = document.createElement("tr");
-        for (let j=1; j<=wid; j++) {
-            // Cellを表すtd要素、wid個
-            const HTMLCellTd = document.createElement("td");
-            if (tableData[(i-1) * wid + j].state !== "empty") {
-                // Cellがemptyでない場合、CellStateと同名のクラスを与える
-                HTMLCellTd.setAttribute("class", tableData[(i-1) * wid + j].state);
-            }
-            HTMLCellTr.appendChild(HTMLCellTd.cloneNode(true));
-        }
-        HTMLCellTable.appendChild(HTMLCellTr.cloneNode(true));
-    }
-    document.getElementById("eva-table")
-    .replaceChild(HTMLCellTable, document.getElementById("cell-table"));    
-}
-
-/**
- * wholeCell内の位置を表すPositionNumber及びPositionArrayを相互に変換する
- * ex) ([wid, hei] = [5, 3]において)
- *     (13) => [2, 3]
- *     [4,2] => 9
- * @param {PositionNumber | PositionArray} positionArgument - wholeCell内の位置を表す変数
- * @returns {PositionNumber | PositionArray} 変換後(型は引数と異なる)
- */
-const positionConverter = function(positionArgument) {
-    if (typeof positionArgument === "number") {
-        return [(positionArgument - 1) % wid + 1, Math.ceil(positionArgument / wid)];
-    } else if (typeof positionArgument === "object") {
-        return (positionArgument[1] - 1) * wid + positionArgument[0];
-    }
-};
-
-
-/**
- * 避難中のEvacueeの一覧。evacueeNumberで管理する
- * @type {number[]}
- */
-let stillEvacuation = [];
-/**
- * evacueeNumber毎にEvacuee
- * @type {Object<number, EvacueeT>}
- */
-const evaDictionary = {};
-for (let i=1; i <= peopleNumber; i++) {
-    const isInjured = Math.random() < injuredPossibility;
-    evaDictionary[i] =
-    isInjured
-    ? new Injured(i, 0)
-    : new Evacuee(i, 0);
-    stillEvacuation.push(i);
-    /** @type {PositionNumber} */
-    let evacueePosition;
-    do {
-        /*
-            0 <= x < (wid * hei)の範囲にあるxを切り捨て(=[x])、+1する
-            1 <= [x] + 1 <= (wid * hei)
-        */
-        evacueePosition = Math.floor(Math.random() * (wid * hei) + 1);
-    } while (wholeCell[evacueePosition].state !== "empty");
-    evaDictionary[i].position = evacueePosition;
-
-    /** @type {CellState} */
-    wholeCell[evacueePosition].state = evaDictionary[i].evacueeType;
     /**
      * Evacueeが移動する関数
      * @returns {{param: string,
@@ -152,7 +32,7 @@ for (let i=1; i <= peopleNumber; i++) {
      *     moveFrom - 移動元の地点
      *     moveTo - 移動先として選ばれた地点
      */
-    evaDictionary[i].move = function() {
+    move() {
         /**
          * 移動先の候補のArray
          * @type {PositionNumber[]}
@@ -246,7 +126,7 @@ for (let i=1; i <= peopleNumber; i++) {
                     param: "exited",
                     moveFrom: this.position,
                     moveTo: moveResult,
-                    moveTurn: turn,
+                    //moveTurn: turn,
                 };
             default:
                 return {
@@ -259,14 +139,177 @@ for (let i=1; i <= peopleNumber; i++) {
 }
 
 /**
+ * 負傷している(一定確率で動けない)避難者のクラス
+ * @type {EvacueeT} 
+ * @extends {Evacuee} 
+ */
+class Injured extends Evacuee {
+    constructor(...args) {
+        //superはthisを触る前
+        super(...args);
+        /** @type {EvacueeType} */
+        this.evacueeType = "injured";
+    }
+}
+
+/** @typedef {Object} CellT - wholeCellを構成するセル一つずつ */
+/** @typedef {string} CellState - Cellの状態を表す */
+/**
+ * 構成セルのクラス
+ * @type {CellT}
+ */
+class Cell {
+    /** @param {CellState} state - Cellの状態を表す */
+    constructor(state = "empty") {
+        /** @type {CellState} */
+        this.state = state;
+    }
+}
+
+//wholeCellの大きさ (横幅: wid, 縦: hei)
+const [wid, hei] = [49, 49];
+// ksが小さいと避難者が出口方向に向かいやすくなる
+const ks = 3.0;
+//避難者の数
+const peopleNumber = 144;
+//EvacueeがInjuredである確率
+const injuredPossibility = 0.05;
+//Injuredが移動できる確率
+const injuredMovePossibility = 0.5;
+/** @type {PositionNumber} */
+const exitPosition = Math.ceil(wid / 2);
+
+let stillEvacuation = [];
+
+/** @type {{[x: PositionNumber]: CellT}} */
+const wholeCell = {};
+for (let i=1; i <= wid * hei; i++) {
+    wholeCell[i] = new Cell();
+}
+wholeCell[exitPosition].state = "exit";
+
+/** eva-tableをwholeCellの内容に更新する */
+const HTMLUpdateCell = function(tableData = wholeCell) {
+    // wholeCellを表すtable要素 
+    const HTMLCellTable = document.createElement("table");
+    HTMLCellTable.setAttribute("id", "cell-table");
+    for (let i=1; i<=hei; i++) {
+        // tableの列を表すtr要素、hei個
+        const HTMLCellTr = document.createElement("tr");
+        for (let j=1; j<=wid; j++) {
+            // Cellを表すtd要素、wid個
+            const HTMLCellTd = document.createElement("td");
+            if (tableData[(i-1) * wid + j].state !== "empty") {
+                // Cellがemptyでない場合、CellStateと同名のクラスを与える
+                HTMLCellTd.setAttribute("class", tableData[(i-1) * wid + j].state);
+            }
+            HTMLCellTr.appendChild(HTMLCellTd.cloneNode(true));
+        }
+        HTMLCellTable.appendChild(HTMLCellTr.cloneNode(true));
+    }
+    document.getElementById("eva-table")
+    .replaceChild(HTMLCellTable, document.getElementById("cell-table"));    
+}
+
+/**
+ * wholeCell内の位置を表すPositionNumber及びPositionArrayを相互に変換する
+ * ex) ([wid, hei] = [5, 3]において)
+ *     (13) => [2, 3]
+ *     [4,2] => 9
+ * @param {PositionNumber | PositionArray} positionArgument - wholeCell内の位置を表す変数
+ * @returns {PositionNumber | PositionArray} 変換後(型は引数と異なる)
+ */
+const positionConverter = function(positionArgument) {
+    if (typeof positionArgument === "number") {
+        return [(positionArgument - 1) % wid + 1, Math.ceil(positionArgument / wid)];
+    } else if (typeof positionArgument === "object") {
+        return (positionArgument[1] - 1) * wid + positionArgument[0];
+    }
+};
+
+const mainLoop = () => {
+    /**
+     * 避難中のEvacueeの一覧。evacueeNumberで管理する
+     * @type {number[]}
+     */
+    stillEvacuation = [];
+    for (let i=1; i <= wid * hei; i++) {
+        wholeCell[i] = new Cell();
+    }
+    wholeCell[exitPosition].state = "exit";
+    /**
+     * evacueeNumber毎にEvacuee
+     * @type {Object<number, EvacueeT>}
+     */
+    const evaDictionary = {};
+    let injuredCount = 0;
+    for (let i=1; i <= peopleNumber; i++) {
+        const isInjured = Math.random() < injuredPossibility;
+        if (isInjured) {injuredCount += 1;}
+        evaDictionary[i] =
+        isInjured
+        ? new Injured(i, 0)
+        : new Evacuee(i, 0);
+        stillEvacuation.push(i);
+        /** @type {PositionNumber} */
+        let evacueePosition;
+        do {
+            /*
+                0 <= x < (wid * hei)の範囲にあるxを切り捨て(=[x])、+1する
+                1 <= [x] + 1 <= (wid * hei)
+            */
+            evacueePosition = Math.floor(Math.random() * (wid * hei) + 1);
+        } while (wholeCell[evacueePosition].state !== "empty");
+        evaDictionary[i].position = evacueePosition;
+
+        /** @type {CellState} */
+        wholeCell[evacueePosition].state = evaDictionary[i].evacueeType;
+    }
+
+
+    ///////////////////////////////////////////////////////////////////////////
+    //////                      ↑ここまで初期設定↑                        //////
+    //////                     ↓ここからループ動作↓                       //////
+    //////////////////////////////////////////////////////////////////////////
+
+    let turn = 0;
+    while (stillEvacuation.length) {
+        turn += 1;
+        // movedとexitedを返した避難者を集める
+        const movedAnyway = [];
+        for (let i of stillEvacuation) {
+            const moveReturn = evaDictionary[i].move();
+            if (["moved", "exited"].includes(moveReturn.param)) {
+                movedAnyway.push(moveReturn.moveFrom);
+                evaDictionary[i].position = moveReturn.moveTo;
+            }
+        }
+        for (let i of movedAnyway) {
+            wholeCell[i].state = "empty";
+        }
+    }
+
+    return [turn, injuredCount];
+}
+
+const resultList = [];
+for (let i=0; i<10000; i++) {
+    resultList.push(mainLoop());
+    console.log(`Attempt {i}: Completed!!!`)
+}
+console.log(resultList);
+
+/**
  * turn(1turn毎に各Evacueeが1回行動する)毎にwholeCellを保存する
  * @type {{[turn: number]: {[x: PositionNumber]: CellT}}}
  */
-const wholeCellByTurn = {};
-let turn = 0;
-const exitLog = [];
+//const wholeCellByTurn = {};
+//let turn = 0;
+
+//const exitLog = [];
+//const collisionLog = [];
 //eva-table読み込み後、HTMLUpdateCell()を呼び出す
-window.onload = () => {
+/*window.onload = () => {
     HTMLUpdateCell();
     while (stillEvacuation.length) {
         turn += 1;
@@ -281,11 +324,17 @@ window.onload = () => {
                 movedAnyway.push(moveReturn.moveFrom);
                 evaDictionary[i].position = moveReturn.moveTo;
             }
+            if (moveReturn.param === "collision") {
+                collisionLog.push(moveReturn.param);
+            }
         }
         for (let i of movedAnyway) {
             wholeCell[i].state = "empty";
         }
-        wholeCellByTurn[turn] = JSON.parse(JSON.stringify(wholeCell));
-        HTMLUpdateCell();
+        if (!stillEvacuation.filter(key => evaDictionary[key].evacueeType === "evacuee").length) {
+            console.log(`the last standing: ${turn}`);
+        }
+        //wholeCellByTurn[turn] = JSON.parse(JSON.stringify(wholeCell));
+        //HTMLUpdateCell();
     }
-};
+};*/
