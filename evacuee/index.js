@@ -1,5 +1,7 @@
 'use strict';
 
+let stillEvacuation = [];
+
 /** @typedef {number} PositionNumber - wholeCell内の位置(number)  */
 /** @typedef {number[]} PositionArray - wholeCell内の位置(number[])  */
 /** @typedef {PositionNumber | PositionArray} Position - wholeCell内の位置(number | number[]) */
@@ -179,7 +181,7 @@ const injuredMovePossibility = 0.5;
 /** @type {PositionNumber} */
 const exitPosition = Math.ceil(wid / 2);
 
-let stillEvacuation = [];
+
 
 /** @type {{[x: PositionNumber]: CellT}} */
 const wholeCell = {};
@@ -227,6 +229,16 @@ const positionConverter = function(positionArgument) {
     }
 };
 
+/**
+ * けが人人数当たりのターン数
+ * @type {Object<number, number[]>}
+ */ 
+const turnByInjured = {};
+let turnList = [];
+let injuredAmountList = [];
+
+
+let keganin = 10;
 const mainLoop = () => {
     /**
      * 避難中のEvacueeの一覧。evacueeNumberで管理する
@@ -244,8 +256,14 @@ const mainLoop = () => {
     const evaDictionary = {};
     let injuredCount = 0;
     for (let i=1; i <= peopleNumber; i++) {
-        const isInjured = Math.random() < injuredPossibility;
+        let isInjured = Math.random() < injuredPossibility;
         if (isInjured) {injuredCount += 1;}
+        if (true && injuredCount > keganin) {
+            isInjured = false;
+        } else if (true && !isInjured) {
+            isInjured = true;
+            injuredCount += 1;
+        }
         evaDictionary[i] =
         isInjured
         ? new Injured(i, 0)
@@ -273,7 +291,7 @@ const mainLoop = () => {
     //////////////////////////////////////////////////////////////////////////
 
     let turn = 0;
-    while (stillEvacuation.length) {
+    while (stillEvacuation.length && true) {
         turn += 1;
         // movedとexitedを返した避難者を集める
         const movedAnyway = [];
@@ -288,17 +306,29 @@ const mainLoop = () => {
             wholeCell[i].state = "empty";
         }
     }
-
-    return [turn, injuredCount];
+    turnByInjured[keganin] =
+        turnByInjured[keganin]
+        ? turnByInjured[keganin].concat([turn])
+        : [turn];
+    turnList.push(turn);
+    injuredAmountList.push(keganin);
+    return [turn, keganin];
 }
 
-const resultList = [];
-for (let i=0; i<10000; i++) {
-    resultList.push(mainLoop());
-    console.log(`Attempt {i}: Completed!!!`)
+for (let j=11; j<21; j++) {
+    keganin = j;
+    turnList = [];
+    injuredAmountList = [];
+    const resultList = [];
+    for (let i=0; i<5000; i++) {
+        resultList.push(mainLoop());
+        console.log(`Attempt Completed!!!`)
+    }
+    console.log(resultList);
+    console.log(turnByInjured);
+    console.log(turnList);
+    console.log(injuredAmountList);
 }
-console.log(resultList);
-
 /**
  * turn(1turn毎に各Evacueeが1回行動する)毎にwholeCellを保存する
  * @type {{[turn: number]: {[x: PositionNumber]: CellT}}}
